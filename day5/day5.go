@@ -11,60 +11,36 @@ import (
 var categories = []string{"seed", "soil", "fertilizer", "water", "light", "temperature", "humidity", "location"}
 
 func main() {
-	data, err := os.ReadFile("example.txt")
+	data, err := os.ReadFile("input.txt")
 	if err != nil {
 		panic(err)
 	}
 	lines := strings.Split(string(data), "\n")
 
 	seeds := extractSeeds(lines)
-	seedToSoilMap := extractSourceToDestinationMap(lines, "seed", "soil")
-	soilToFertilizerMap := extractSourceToDestinationMap(lines, "soil", "fertilizer")
-	fertilizerToWaterMap := extractSourceToDestinationMap(lines, "fertilizer", "water")
-	waterToLightMap := extractSourceToDestinationMap(lines, "water", "light")
-	lightToTemperatureMap := extractSourceToDestinationMap(lines, "light", "temperature")
-	temperatureToHumidityMap := extractSourceToDestinationMap(lines, "temperature", "humidity")
-	humidityToLocationMap := extractSourceToDestinationMap(lines, "humidity", "location")
-
 	locations := []int{}
 
+	soilMapping := extractMapping(lines, "seed", "soil")
+	fertilizerMapping := extractMapping(lines, "soil", "fertilizer")
+	waterMapping := extractMapping(lines, "fertilizer", "water")
+	lightMapping := extractMapping(lines, "water", "light")
+	temperatureMapping := extractMapping(lines, "light", "temperature")
+	humidityMapping := extractMapping(lines, "temperature", "humidity")
+	locationMapping := extractMapping(lines, "humidity", "location")
+
 	for _, seed := range seeds {
-		soil, soilFound := seedToSoilMap[seed]
-		if !soilFound {
-			soil = seed
-		}
-
-		fertilizer, fertilizerFound := soilToFertilizerMap[soil]
-		if !fertilizerFound {
-			fertilizer = soil
-		}
-		water, waterFound := fertilizerToWaterMap[fertilizer]
-		if !waterFound {
-			water = fertilizer
-		}
-		light, lightFound := waterToLightMap[water]
-		if !lightFound {
-			light = water
-		}
-		temperature, temperatureFound := lightToTemperatureMap[light]
-		if !temperatureFound {
-			temperature = light
-		}
-		humidity, humidityFound := temperatureToHumidityMap[temperature]
-		if !humidityFound {
-			humidity = temperature
-		}
-		location, locationFound := humidityToLocationMap[humidity]
-		if !locationFound {
-			location = humidity
-		}
-
+		soil, _ := soilMapping.InRange(seed)
+		fertilizer, _ := fertilizerMapping.InRange(soil)
+		water, _ := waterMapping.InRange(fertilizer)
+		light, _ := lightMapping.InRange(water)
+		temperature, _ := temperatureMapping.InRange(light)
+		humidity, _ := humidityMapping.InRange(temperature)
+		location, _ := locationMapping.InRange(humidity)
+		fmt.Println("seed", seed, "soil", soil, "fertilizer", fertilizer, "water", water, "light", light, "temperature", temperature, "humidity", humidity, "location", location)
 		locations = append(locations, location)
-		fmt.Println("Seed", seed, "soil", soil, "fertilizer", fertilizer, "water", water, "light", light, "temperature", temperature, "humidity", humidity, "location", location)
-
 	}
 
-	fmt.Println("Lowest location is", slices.Min(locations))
+	fmt.Println("Smallest location is", slices.Min(locations))
 
 }
 
@@ -78,9 +54,7 @@ func extractSeeds(lines []string) []int {
 	return intSeeds
 }
 
-func extractSourceToDestinationMap(lines []string, source, destination string) map[int]int {
-	result := make(map[int]int)
-
+func extractMapping(lines []string, source, destination string) Mapping {
 	startLineIndex := slices.IndexFunc(lines, func(line string) bool {
 		return strings.Contains(line, fmt.Sprintf("%s-to-%s map", source, destination))
 	}) + 1
@@ -100,15 +74,39 @@ func extractSourceToDestinationMap(lines []string, source, destination string) m
 		}) - 2
 	}
 
-	mapLines := lines[startLineIndex : endLineIndex+1]
+	mapping := Mapping{
+		SourceRangeStartValues:      []int{},
+		DestinationRangeStartValues: []int{},
+		RangeLengthValues:           []int{},
+	}
 
-	for _, line := range mapLines {
-		destinationRangeStart, _ := strconv.Atoi(strings.Split(line, " ")[0])
-		sourceRangeStart, _ := strconv.Atoi(strings.Split(line, " ")[1])
-		rangeLength, _ := strconv.Atoi(strings.Split(line, " ")[2])
-		for i := 0; i < rangeLength; i++ {
-			result[sourceRangeStart+i] = destinationRangeStart + i
+	for _, line := range lines[startLineIndex : endLineIndex+1] {
+		lineValues := strings.Split(line, " ")
+		destinationRangeStart, _ := strconv.Atoi(lineValues[0])
+		sourceRangeStart, _ := strconv.Atoi(lineValues[1])
+		rangeLength, _ := strconv.Atoi(lineValues[2])
+
+		mapping.DestinationRangeStartValues = append(mapping.DestinationRangeStartValues, destinationRangeStart)
+		mapping.SourceRangeStartValues = append(mapping.SourceRangeStartValues, sourceRangeStart)
+		mapping.RangeLengthValues = append(mapping.RangeLengthValues, rangeLength)
+	}
+
+	return mapping
+}
+
+type Mapping struct {
+	SourceRangeStartValues      []int
+	DestinationRangeStartValues []int
+	RangeLengthValues           []int
+}
+
+func (m *Mapping) InRange(value int) (int, bool) {
+	for index, sourceRangeStart := range m.SourceRangeStartValues {
+		if value >= sourceRangeStart && value <= sourceRangeStart+m.RangeLengthValues[index] {
+			result := m.DestinationRangeStartValues[index] + (value - m.SourceRangeStartValues[index])
+			return result, true
 		}
 	}
-	return result
+
+	return value, false
 }
