@@ -15,9 +15,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
 	lines := strings.Split(string(data), "\n")
 
 	seeds := extractSeeds(lines)
+	fmt.Println("Seeds length", len(seeds))
 	locations := []int{}
 
 	soilMapping := extractMapping(lines, "seed", "soil")
@@ -36,7 +38,6 @@ func main() {
 		temperature, _ := temperatureMapping.InRange(light)
 		humidity, _ := humidityMapping.InRange(temperature)
 		location, _ := locationMapping.InRange(humidity)
-		fmt.Println("seed", seed, "soil", soil, "fertilizer", fertilizer, "water", water, "light", light, "temperature", temperature, "humidity", humidity, "location", location)
 		locations = append(locations, location)
 	}
 
@@ -46,9 +47,17 @@ func main() {
 
 func extractSeeds(lines []string) []int {
 	stringSeeds := strings.Split(lines[0], " ")[1:]
-	intSeeds := make([]int, len(stringSeeds))
-	for i, seed := range stringSeeds {
-		intSeeds[i], _ = strconv.Atoi(seed)
+	intSeeds := []int{}
+	// TODO: use goroutines
+	for i := 0; i < len(stringSeeds); i = i + 2 {
+		beginRange, _ := strconv.Atoi(stringSeeds[i])
+		rangeLength, _ := strconv.Atoi(stringSeeds[i+1])
+
+		fmt.Println("beginRange", beginRange, "rangeLength", rangeLength)
+
+		for j := 0; j < rangeLength; j++ {
+			intSeeds = append(intSeeds, beginRange+j)
+		}
 	}
 
 	return intSeeds
