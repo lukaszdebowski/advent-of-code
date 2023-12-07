@@ -48,17 +48,32 @@ func (h Hands) Swap(i, j int) {
 
 func (h *Hand) getType() int {
 	cardsMap := map[string]int{}
+	jokersAmount := 0
 
 	for _, card := range h.cards {
-		cardsMap[card]++
+		if card == "J" {
+			jokersAmount++
+		} else {
+			cardsMap[card]++
+		}
 	}
 
-	values := make([]int, 0, len(cardsMap))
+	fmt.Println(h, jokersAmount)
+
+	if jokersAmount == len(h.cards) {
+		return 7
+	}
+
+	// values now does not contain jokers
+	values := []int{}
 	for _, v := range cardsMap {
 		values = append(values, v)
 	}
 
 	slices.Sort(values)
+
+	// add jokers to the highest value to get the best type
+	values[len(values)-1] += jokersAmount
 
 	if slices.Equal(values, []int{5}) {
 		return 7
@@ -86,6 +101,7 @@ func (h *Hand) getType() int {
 }
 
 var cardsMapping = map[string]int{
+	"J": 1,
 	"2": 2,
 	"3": 3,
 	"4": 4,
@@ -95,7 +111,6 @@ var cardsMapping = map[string]int{
 	"8": 8,
 	"9": 9,
 	"T": 10,
-	"J": 11,
 	"Q": 12,
 	"K": 13,
 	"A": 14,
@@ -117,10 +132,6 @@ func main() {
 
 	sort.Sort(hands)
 	result := 0
-
-	for _, hand := range hands {
-		fmt.Println(hand)
-	}
 
 	for index, hand := range hands {
 		value := hand.bid * (index + 1)
