@@ -12,22 +12,6 @@ func main() {
 	data, _ := os.ReadFile("input.txt")
 	lines := strings.Split(string(data), "\n")
 
-	result := part1Solution(lines)
-	fmt.Println("Result:", result)
-}
-
-type Game struct {
-	id     int
-	rounds []Round
-}
-
-type Round struct {
-	red   int
-	green int
-	blue  int
-}
-
-func part1Solution(lines []string) int {
 	allGames := []Game{}
 
 	for _, line := range lines {
@@ -62,6 +46,24 @@ func part1Solution(lines []string) int {
 		allGames = append(allGames, Game{gameId, rounds})
 	}
 
+	// result := part1Solution(allGames)
+	result := part2Solution(allGames)
+	fmt.Println("Result:", result)
+
+}
+
+type Game struct {
+	id     int
+	rounds []Round
+}
+
+type Round struct {
+	red   int
+	green int
+	blue  int
+}
+
+func part1Solution(allGames []Game) int {
 	result := 0
 
 	for _, game := range allGames {
@@ -82,12 +84,27 @@ func part1Solution(lines []string) int {
 	return result
 }
 
-func part2Solution(lines []string) int {
+func part2Solution(allGames []Game) int {
 	result := 0
 
-	// for _, line := range lines {
+	for _, game := range allGames {
+		reds := []int{}
+		greens := []int{}
+		blues := []int{}
 
-	// }
+		for _, round := range game.rounds {
+			reds = append(reds, round.red)
+			greens = append(greens, round.green)
+			blues = append(blues, round.blue)
+		}
+
+		maxRed := slices.Max(reds)
+		maxGreen := slices.Max(greens)
+		maxBlue := slices.Max(blues)
+
+		power := maxRed * maxGreen * maxBlue
+		result += power
+	}
 
 	return result
 }
