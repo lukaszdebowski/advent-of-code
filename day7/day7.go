@@ -28,8 +28,6 @@ func (h Hands) Less(i, j int) bool {
 		return true
 	} else if elem1.getType() == elem2.getType() {
 		for i := 0; i < len(elem1.cards); i++ {
-			fmt.Println(elem1.cards[i], cardsMapping[elem1.cards[i]])
-			fmt.Println(elem2.cards[i], cardsMapping[elem2.cards[i]])
 			if cardsMapping[elem1.cards[i]] < cardsMapping[elem2.cards[i]] {
 				return true
 			} else if cardsMapping[elem1.cards[i]] == cardsMapping[elem2.cards[i]] {
@@ -58,46 +56,40 @@ func (h *Hand) getType() int {
 		}
 	}
 
-	fmt.Println(h, jokersAmount)
-
 	if jokersAmount == len(h.cards) {
 		return 7
 	}
 
-	// values now does not contain jokers
-	values := []int{}
+	// cardsValues now does not contain jokers
+	cardsValues := []int{}
 	for _, v := range cardsMap {
-		values = append(values, v)
+		cardsValues = append(cardsValues, v)
 	}
 
-	slices.Sort(values)
+	slices.Sort(cardsValues)
 
 	// add jokers to the highest value to get the best type
-	values[len(values)-1] += jokersAmount
+	cardsValues[len(cardsValues)-1] += jokersAmount
 
-	if slices.Equal(values, []int{5}) {
+	switch {
+	case slices.Equal(cardsValues, []int{5}):
 		return 7
-	}
-	if slices.Equal(values, []int{1, 4}) {
+	case slices.Equal(cardsValues, []int{1, 4}):
 		return 6
-	}
-	if slices.Equal(values, []int{2, 3}) {
+	case slices.Equal(cardsValues, []int{2, 3}):
 		return 5
-	}
-	if slices.Equal(values, []int{1, 1, 3}) {
+	case slices.Equal(cardsValues, []int{1, 1, 3}):
 		return 4
-	}
-	if slices.Equal(values, []int{1, 2, 2}) {
+	case slices.Equal(cardsValues, []int{1, 2, 2}):
 		return 3
-	}
-	if slices.Equal(values, []int{1, 1, 1, 2}) {
+	case slices.Equal(cardsValues, []int{1, 1, 1, 2}):
 		return 2
-	}
-	if slices.Equal(values, []int{1, 1, 1, 1, 1}) {
+	case slices.Equal(cardsValues, []int{1, 1, 1, 1, 1}):
 		return 1
+	default:
+		panic("Invalid cards for hand")
 	}
-	fmt.Println("ERROR")
-	return 0
+
 }
 
 var cardsMapping = map[string]int{
@@ -117,10 +109,7 @@ var cardsMapping = map[string]int{
 }
 
 func main() {
-	data, err := os.ReadFile("input.txt")
-	if err != nil {
-		panic(err)
-	}
+	data, _ := os.ReadFile("input.txt")
 	lines := strings.Split(string(data), "\n")
 
 	hands := Hands([]Hand{})
@@ -140,5 +129,3 @@ func main() {
 
 	fmt.Println(result)
 }
-
-// 248143252
