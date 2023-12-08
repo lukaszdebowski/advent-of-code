@@ -16,35 +16,63 @@ func main() {
 	lines := strings.Split(string(data), "\n")
 
 	directions := strings.Split(lines[0], "")
-	instructions := map[string]Instruction{}
+	allInstructions := map[string]Instruction{}
 
 	for _, line := range lines[2:] {
-		instructions[line[:3]] = Instruction{
+		allInstructions[line[:3]] = Instruction{
 			left:  line[7:10],
 			right: line[12:15],
 		}
 	}
 
-	step := 0
-	instruction := instructions["AAA"]
-
-	for {
-		dir := directions[step%len(directions)]
-		var newKey string
-		switch dir {
-		case "L":
-			newKey = instruction.left
-		case "R":
-			newKey = instruction.right
+	var instructions = []string{}
+	for k := range allInstructions {
+		if strings.HasSuffix(k, "A") {
+			instructions = append(instructions, k)
 		}
-		instruction = instructions[newKey]
-		step++
-
-		if newKey == "ZZZ" {
-			break
-		}
-
 	}
 
-	fmt.Println("Steps:", step)
+	steps := []int{}
+	for i := 0; i < len(instructions); i++ {
+		key := instructions[i]
+		step := 0
+	inner:
+		for {
+			instruction := allInstructions[key]
+			dir := directions[step%len(directions)]
+			switch dir {
+			case "L":
+				key = instruction.left
+			case "R":
+				key = instruction.right
+			}
+			step++
+			if strings.HasSuffix(key, "Z") {
+				steps = append(steps, step)
+				break inner
+			}
+		}
+	}
+
+	result := LCM(steps[0], steps[1], steps[2:]...)
+	fmt.Println("result:", result)
+}
+
+// greatest common divisor (GCD) via Euclidean algorithm
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+// find Least Common Multiple (LCM) via GCD
+func LCM(a, b int, integers ...int) int {
+	result := a * b / GCD(a, b)
+	for i := 0; i < len(integers); i++ {
+		result = LCM(result, integers[i])
+	}
+	return result
 }
