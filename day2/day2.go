@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	data, _ := os.ReadFile("example-1.txt")
+	data, _ := os.ReadFile("input.txt")
 	lines := strings.Split(string(data), "\n")
 
 	result := part1Solution(lines)
@@ -41,22 +41,22 @@ func part1Solution(lines []string) int {
 			roundInfo = strings.ReplaceAll(roundInfo, ",", "")
 			parts := strings.Split(roundInfo, " ")
 			redIndex := slices.Index(parts, "red") - 1
-			blueIndex := slices.Index(parts, "blue") - 1
 			greenIndex := slices.Index(parts, "green") - 1
+			blueIndex := slices.Index(parts, "blue") - 1
 
-			var redValue, blueValue, greenValue int
+			var redValue, greenValue, blueValue int
 
 			if redIndex >= 0 {
 				redValue, _ = strconv.Atoi(parts[redIndex])
 			}
-			if blueIndex >= 0 {
-				blueValue, _ = strconv.Atoi(parts[blueIndex])
-			}
 			if greenIndex >= 0 {
 				greenValue, _ = strconv.Atoi(parts[greenIndex])
 			}
+			if blueIndex >= 0 {
+				blueValue, _ = strconv.Atoi(parts[blueIndex])
+			}
 
-			rounds = append(rounds, Round{redValue, blueValue, greenValue})
+			rounds = append(rounds, Round{redValue, greenValue, blueValue})
 		}
 
 		allGames = append(allGames, Game{gameId, rounds})
@@ -79,7 +79,6 @@ func part1Solution(lines []string) int {
 		}
 
 	}
-
 	return result
 }
 
